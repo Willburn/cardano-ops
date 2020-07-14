@@ -7,8 +7,8 @@ let
     then let r = __fromJSON (__readFile benchmarkingParamsFile);
          in if __hasAttr "meta" r
             then if __hasAttr "default_profile" r.meta then r
-                 else abort "${benchmarkingParamsFile} must define 'meta.default_profile'"
-            else abort "${benchmarkingParamsFile} must defined the 'meta' section"
+                 else abort "${benchmarkingParamsFile} must define 'meta.default_profile':  please run 'bench reinit' to update it"
+            else abort "${benchmarkingParamsFile} must define the 'meta' section:  please run 'bench reinit' to update it"
     else abort "Benchmarking requires ${toString benchmarkingParamsFile} to exist.  Please, refer to documentation.";
   benchmarkingTopologyFile =
     ./topologies + "/bench-txgen-simple-${toString (__length benchmarkingParams.meta.node_names)}.nix";
@@ -17,6 +17,14 @@ let
     then __trace "Using topology:  ${benchmarkingTopologyFile}"
          (import benchmarkingTopologyFile)
     else abort "Benchmarking topology file implied by configured node count ${__length benchmarkingParams.meta.node_names} does not exist: ${benchmarkingTopologyFile}";
+  benchmarkingParamsEra =
+    if __hasAttr "era" benchmarkingParams.meta
+    then benchmarkingParams.meta.era
+    else abort "${benchmarkingParamsFile} must define 'meta.era':  please run 'bench reinit' to update it";
+  Protocol =
+    { shelley = "TPraos";
+      byron   = "RealPBFT";
+    }."${benchmarkingParamsEra}";
 
   ### Benchmarking profiles are, currently, essentially name-tagger
   ### generator configs.
@@ -78,22 +86,22 @@ in reportDeployment (rec {
     edgePort = pkgs.globals.cardanoNodePort;
     confKey = abort "legacy nodes not supported by benchmarking environment";
     genesisFile = ./keys/genesis.json;
-    genesisHash = builtins.replaceStrings ["\n"] [""] (builtins.readFile ./keys/GENHASH);
+    # genesisHash = builtins.replaceStrings ["\n"] [""] (builtins.readFile ./keys/GENHASH);
     private = true;
     networkConfig = pkgs.iohkNix.cardanoLib.environments.shelley_testnet.networkConfig // {
+      inherit Protocol;
       GenesisFile = genesisFile;
-      GenesisHash = genesisHash;
-      NumCoreNodes = builtins.length topology.coreNodes;
+      # GenesisHash = genesisHash;
     };
     nodeConfig = pkgs.iohkNix.cardanoLib.environments.shelley_testnet.nodeConfig // {
+      inherit Protocol;
       GenesisFile = genesisFile;
-      GenesisHash = genesisHash;
-      NumCoreNodes = builtins.length topology.coreNodes;
+      # GenesisHash = genesisHash;
     };
     txSubmitConfig = {
       inherit (networkConfig) RequiresNetworkMagic;
       GenesisFile = genesisFile;
-      GenesisHash = genesisHash;
+      # GenesisHash = genesisHash;
     } // pkgs.iohkNix.cardanoLib.defaultExplorerLogConfig;
 
     ## This is overlaid atop the defaults in the tx-generator service,
@@ -159,8 +167,8 @@ in reportDeployment (rec {
               TracingVerbosity = "MaximalVerbosity";
               minSeverity = "Debug";
               TurnOnLogMetrics = true;
-              PBftSignatureThreshold =
-                (1.0 / __length benchmarkingTopology.coreNodes) * 1.5;
+              # PBftSignatureThreshold =
+              #   (1.0 / __length benchmarkingTopology.coreNodes) * 1.5;
             });
     }) (benchmarkingTopology.coreNodes or []);
   };

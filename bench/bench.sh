@@ -157,11 +157,14 @@ main() {
         case "${op}" in
                 init-params | init )  params_init "$@";;
                 reinit-params | reinit )
-                                      local node_count
+                                      local node_count era
                                       node_count=$(parmetajq '.node_names | length')
+                                      era=$(parmetajq '.era')
                                       if test -z "$node_count"
                                       then fail "reinit:  cannot get node count from params file -- use init instead."; fi
-                                      params_init "$node_count" "$@";;
+                                      if test -z "$era"
+                                      then fail "reinit:  cannot get era from params file -- use init instead."; fi
+                                      params_init "$node_count" "$era" "$@";;
                 recreate-cluster | recreate )
                                       params_recreate_cluster "$@";;
 

@@ -19,9 +19,10 @@
 
 def era_genesis_params($era; $composition):
 { common:
-  { protocol_magic:          459045235
-  , secret:                  2718281828
-  , total_balance:           9000000000000000
+  { protocol_magic:          42
+    ## XXX: for some reason, Shelley genesis generator does not respect
+    ##      --testnet-magic
+  , total_balance:           9000000000000
   }
 , byron:
   { parameter_k:             2160
@@ -31,6 +32,7 @@ def era_genesis_params($era; $composition):
   , delegate_share:          0.9
   , avvm_entries:            128
   , avvm_entry_balance:      10000000000000
+  , secret:                  2718281828
   , slot_duration:           20000
   }
 , shelley:
@@ -39,7 +41,7 @@ def era_genesis_params($era; $composition):
   , slot_duration:           1
   , decentralisation_param:  0.5
   , max_tx_size:             16384
-  , pools_balance:           8000000000000000
+  , pools_balance:           8000000000000
   , active_slots_coeff:      0.05
   }
 } | (.common + .[$era]);

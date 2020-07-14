@@ -5,10 +5,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "cardano-benchmarking",
-        "rev": "6fe78de57946045633fe896cbd7f945d1f58fecd",
-        "sha256": "1dfx5f41a2pinw09snjr8agmahhiv19qv5ibbijlbxnnqcq8bnz9",
+        "rev": "89de76aa82907bc72f6274036787617a90f699ad",
+        "sha256": "0k67kdnwjm77s5d9wl4nza6kycnpziscm2pxy125sc2d791h14a4",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/cardano-benchmarking/archive/6fe78de57946045633fe896cbd7f945d1f58fecd.tar.gz",
+        "url": "https://github.com/input-output-hk/cardano-benchmarking/archive/89de76aa82907bc72f6274036787617a90f699ad.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "cardano-byron-proxy": {
@@ -72,15 +72,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "cardano-node": {
-        "branch": "tags/1.14.2",
+        "branch": "cad-1347-bump-genesis-staking",
         "description": null,
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "cardano-node",
-        "rev": "924a6f7d8c2bdb1bf525be8b0d5626e440697b01",
-        "sha256": "0bi1vwmb1w6wc2szpr8v1nbsci9y36lnjr4v5pli1wvll1hhpw3c",
+        "rev": "e3afad9f45c099bf5c41ffe61efef36f528df90b",
+        "sha256": "0c6xrl7d1ykj12yncrbrvmsi08v38skd9za160x5x1v9k4bw07ik",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/cardano-node/archive/924a6f7d8c2bdb1bf525be8b0d5626e440697b01.tar.gz",
+        "url": "https://github.com/input-output-hk/cardano-node/archive/e3afad9f45c099bf5c41ffe61efef36f528df90b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "cardano-rest": {

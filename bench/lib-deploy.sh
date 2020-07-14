@@ -71,11 +71,19 @@ update_deployfiles() {
 
 deploystate_node_process_genesis_startTime() {
         local core="${1:-node-0}"
-        nixops ssh ${core} \
-          jq .startTime $(nixops ssh ${core} \
-                  jq .GenesisFile $(nixops ssh ${core} -- \
-                          pgrep -al cardano-node |
-                                  sed 's_.* --config \([^ ]*\) .*_\1_'))
+
+        local genesis
+        genesis=$(nixops ssh ${core} -- jq . \
+                $(nixops ssh ${core} -- jq .GenesisFile \
+                $(nixops ssh ${core} -- pgrep -al cardano-node |
+                  sed 's_.* --config \([^ ]*\) .*_\1_')))
+
+        case $(get_era) in
+             byron )   jq .startTime      <<<$genesis;;
+             shelley ) jq '.systemStart
+                          | fromdateiso8601
+                          '  --raw-output <<<$genesis;;
+        esac
 }
 
 deploystate_local_genesis_startTime() {
@@ -103,11 +111,12 @@ deploystate_create() {
 
 deploystate_deploy_profile() {
         local prof=$1 include=$2 deploylog=$3 full=
-        local node_rev benchmarking_rev ops_rev ops_checkout_state
+        local era node_rev benchmarking_rev ops_rev ops_checkout_state
 
         if test "$include" = "$(params all-machines)"
         then include=; full='(full)'; fi
 
+        era=$(get_era)
         benchmarking_rev=$(jq --raw-output '.["cardano-benchmarking"].rev' nix/sources.json)
         node_rev=$(jq --raw-output '.["cardano-node"].rev' nix/sources.bench-txgen-simple.json)
         ops_rev=$(git rev-parse HEAD)
@@ -116,10 +125,11 @@ deploystate_deploy_profile() {
         to=${include:-the entire cluster}
 
         cat <<EOF
---( deploying profile ${prof} to:  ${to#--include }
---(   node:          ${node_rev}
---(   benchmarking:  ${benchmarking_rev}
---(   ops:           ${ops_rev} / ${ops_branch}  ${ops_checkout_state}
+--( deploying profile $prof to:  ${to#--include }
+--(   era:           $era
+--(   node:          $node_rev
+--(   benchmarking:  $benchmarking_rev
+--(   ops:           $ops_rev / $ops_branch  $ops_checkout_state
 EOF
         local cmd=( nixops deploy
                     --max-concurrent-copy 50 --cores 0 -j 4

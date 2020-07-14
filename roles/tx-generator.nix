@@ -2,12 +2,15 @@ pkgs: { config, name, lib, nodes, resources, ... }:
 with pkgs;
 
 let
-  # We need first 3 signing keys and delegation certificate
+  inherit (globals.environmentConfig.networkConfig) Protocol;
+
+  # We need a signing key with access to funds
   # to be able to run tx generator and sign generated transactions.
-  signingKeyGen = ../keys/delegate-keys.000.key;
-  signingKeySrc = ../keys/delegate-keys.001.key;
-  signingKeyRec = ../keys/delegate-keys.002.key;
-  delegationCertificate = ../keys/delegation-cert.000.json;
+  signingKey =
+    { TPraos   = ../keys/utxo-keys/utxo1.skey;
+      RealPBft = ../keys/delegate-keys.000.key;
+    }."${Protocol}"
+      or (abort "Unsupported protocol: ${Protocol}");
 
   cardanoNodes = lib.filterAttrs
     (_: node: node.config.services.cardano-node.enable or false &&
@@ -31,10 +34,7 @@ in {
 
     ## nodeConfig of the locally running observer node.
     localNodeConf = config.services.cardano-node;
-    keyGen = "/var/lib/keys/cardano-node-signing-gen";
-    keySrc = "/var/lib/keys/cardano-node-signing-src";
-    keyRec = "/var/lib/keys/cardano-node-signing-rec";
-    delegCert = "/var/lib/keys/cardano-node-delegation-cert";
+    sigKey = "/var/lib/keys/cardano-node-signing";
 
     ## The nodeConfig of the Tx generator itself.
     nodeConfig = {
@@ -121,31 +121,12 @@ in {
       };
     });
 
-    signingKey = lib.mkForce "/var/lib/keys/cardano-node-signing-gen";
-    delegationCertificate = lib.mkForce "/var/lib/keys/cardano-node-delegation-cert";
+    signingKey = lib.mkForce "/var/lib/keys/cardano-node-signing";
   };
 
   deployment.keys = {
-    "cardano-node-signing-gen" = builtins.trace ("${name}: using " + (toString signingKeyGen)) {
-        keyFile = signingKeyGen;
-        user = "cardano-node";
-        group = "cardano-node";
-        destDir = "/var/lib/keys";
-    };
-    "cardano-node-signing-src" = builtins.trace ("${name}: using " + (toString signingKeySrc)) {
-        keyFile = signingKeySrc;
-        user = "cardano-node";
-        group = "cardano-node";
-        destDir = "/var/lib/keys";
-    };
-    "cardano-node-signing-rec" = builtins.trace ("${name}: using " + (toString signingKeyRec)) {
-        keyFile = signingKeyRec;
-        user = "cardano-node";
-        group = "cardano-node";
-        destDir = "/var/lib/keys";
-    };
-    "cardano-node-delegation-cert" = builtins.trace ("${name}: using " + (toString delegationCertificate)) {
-        keyFile = delegationCertificate;
+    "cardano-node-signing" = builtins.trace ("${name}: using " + (toString signingKey)) {
+        keyFile = signingKey;
         user = "cardano-node";
         group = "cardano-node";
         destDir = "/var/lib/keys";
